@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>FieldSlope: Your terrain API</title>
+
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                     Roboto, Helvetica, Arial, sans-serif;
+        max-width: 850px;
+        margin: 50px auto;
+        padding: 0 20px;
+        color: #222;
+        line-height: 1.6;
+    }
+
+    h1 {
+        font-size: 2.2rem;
+        margin-bottom: 5px;
+    }
+
+    .subtitle {
+        color: #666;
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+    }
+
+    nav {
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 30px;
+    }
+
+    nav button {
+        background: none;
+        border: none;
+        padding: 12px 16px;
+        cursor: pointer;
+        font-size: 1rem;
+        color: #555;
+    }
+
+    nav button.active {
+        color: #000;
+        border-bottom: 2px solid #000;
+    }
+
+    .tab {
+        display: none;
+    }
+
+    .tab.active {
+        display: block;
+    }
+
+    pre {
+        background: #f5f5f5;
+        padding: 15px;
+        overflow-x: auto;
+        border-radius: 4px;
+    }
+
+    code {
+        font-family: "SFMono-Regular", Consolas, monospace;
+    }
+
+    a {
+        color: #0066cc;
+    }
+
+    .endpoint {
+        font-family: monospace;
+        font-size: 1.1rem;
+        background: #f5f5f5;
+        padding: 8px 12px;
+        display: inline-block;
+        border-radius: 4px;
+    }
+
+    footer {
+        margin-top: 50px;
+        color: #777;
+        font-size: 0.9rem;
+    }
+</style>
+
+<script>
+function showTab(name) {
+    document.querySelectorAll(".tab")
+        .forEach(t => t.classList.remove("active"));
+
+    document.querySelectorAll("nav button")
+        .forEach(b => b.classList.remove("active"));
+
+    document.getElementById(name).classList.add("active");
+    document.getElementById(name + "-button").classList.add("active");
+}
+</script>
+
+</head>
+
+<body>
+
+<h1>FieldTerrain</h1>
+
+<div class="subtitle">
+    Your terrain API to reliably retrieve the slope and direction of a field and render a snippet of the underlying srtm heightmap using different methods.
+</div>
+
+
+<nav>
+    <button id="about-button"
+            class="active"
+            onclick="showTab('about')">
+        About
+    </button>
+
+    <button id="tile-button"
+            onclick="showTab('tile')">
+        Tile API
+    </button>
+
+    <button id="tile-button"
+            onclick="showTab('window')">
+        Window API
+    </button>
+
+    <button id="slope-button"
+            onclick="showTab('slope')">
+        Field Slope API
+    </button>
+
+    <button id="examples-button"
+            onclick="showTab('examples')">
+        Code Examples
+    </button>
+
+    <button id="examples-button"
+            onclick="showTab('apikey')">
+        Request API key
+    </button>
+</nav>
+
+
+<div id="about" class="tab active">
+
+<h2>About</h2>
+
+<p>
+This service provides simple API endpoints for accessing
+tile data and calculating field slopes.
+</p>
+
+<p>
+The API is designed to be lightweight and easy to integrate.
+No client library is required.
+</p>
+
+<p>
+Interactive documentation:
+<a href="/docs">/docs</a>
+</p>
+
+</div>
+
+<div id="window" class="tab">
+    <h2>Terrain Window API</h2>
+
+    <p>
+    Retrieve a rectangular window of terrain data using geographic coordinates.
+    The requested area is defined by a longitude and latitude bounding box.
+    The response format can be selected using the <code>format</code> parameter.
+    A maximum window size is enforced to ensure efficient responses.
+    </p>
+
+    <p class="endpoint">
+    GET /api/terrain/window
+    </p>
+
+    <h3>Example request</h3>
+
+<pre><code>
+GET /api/terrain/window?
+    min_lon=8.50&
+    min_lat=52.00&
+    max_lon=8.60&
+    max_lat=52.10&
+    format=shaded_contours&
+    token=YOUR_API_KEY
+</code></pre>
+
+    <p>
+    Coordinates are specified as decimal degrees using the WGS84 coordinate system.
+    The <code>format</code> parameter specifies the output representation and can be one of:
+    </p>
+
+    <ul>
+        <li><code>raw</code> - raw elevation data</li>
+        <li><code>shaded_contours</code> - shaded terrain visualization with contour information</li>
+        <li><code>colormap</code> - elevation data rendered using a color gradient</li>
+    </ul>
+
+    <p>
+    The requested window must not exceed the maximum supported size.
+    </p>
+
+    <h3>Example response</h3>
+
+    <p>
+    The endpoint returns an image representation of the requested terrain window.
+    </p>
+
+    <img
+        src="example_tile.jpg"
+        alt="Example terrain window"
+        style="max-width: 100%; border: 1px solid #ddd;"
+    >
+</div>
+
+
+<div id="tile" class="tab">
+
+<h2>Tile API</h2>
+
+<p>
+Retrieve tile information using geographic coordinates.
+</p>
+
+<p class="endpoint">
+GET /api/tiles/shaded_contour/
+</p>
+
+<h3>Example request</h3>
+
+<pre><code>
+GET /api/tiles/shaded_contour/tile?x=10&amp;y=20&amp;z=5&amp;token=YOUR_API_KEY
+</code></pre>
+
+<h3>Example response</h3>
+
+<p>
+The endpoint returns a JPG image.
+</p>
+
+<img
+    src="example_tile.jpg"
+    alt="Example heightmap tile"
+    style="max-width: 100%; border: 1px solid #ddd;"
+>
+
+</div>
+
+
+<div id="slope" class="tab">
+
+<h2>Field Slope API</h2>
+
+<p>
+Retrieve slope information for a geographic location.
+</p>
+
+<p class="endpoint">
+GET /api/point_slope
+</p>
+
+<h3>Example request</h3>
+
+<pre><code>
+GET /api/point_slope?
+    longitude=8.5510&amp;
+    latitude=52.0302&amp;
+    token=YOUR_API_KEY
+</code></pre>
+
+<h3>Example response</h3>
+
+<pre><code>
+{
+    "slope": 0.05,
+    "slope_direction": "north_east"
+}
+</code></pre>
+
+<h3>Example response</h3>
+
+<p>
+The <code>slope_direction</code> field describes the direction of the slope and is one of the following values:
+<br><br>
+<code>north</code>, <code>north_north_east</code>, <code>north_east</code>, <code>east_north_east</code>, <code>east</code>, <code>east_south_east</code>, <code>south_east</code>, <code>south_south_east</code>, <code>south</code>, <code>south_south_west</code>, <code>south_west</code>, <code>west_south_west</code>, <code>west</code>, <code>west_north_west</code>, <code>north_west</code>, <code>north_north_west</code>, or <code>no_slope</code>.
+</p>
+<br>
+
+<pre><code>
+{
+    "slope": 0.05,
+    "slope_direction": "north_east"
+}
+</code></pre>
+
+</div>
+
+
+<div id="examples" class="tab">
+
+<h2>Code Examples</h2>
+
+<h3>Local testing (localhost:8003)</h3>
+
+<h4>curl</h4>
+
+<pre><code>
+curl --noproxy "*" "http://localhost:8003/api/point_slope?longitude=8.5510&amp;latitude=52.0302&amp;token=YOUR_API_KEY"
+</code></pre>
+
+
+<h4>Python</h4>
+
+<pre><code>
+import requests
+
+r = requests.get(
+    "http://localhost:8003/api/point_slope",
+    params={
+        "longitude": 8.5510,
+        "latitude": 52.0302,
+        "token": "YOUR_API_KEY"
+    },
+    proxies={
+        "http": None,
+        "https": None
+    }
+)
+
+print(r.json())
+</code></pre>
+
+
+<h3>Production API (apistack.eu)</h3>
+
+<h4>curl</h4>
+
+<pre><code>
+curl "https://apistack.eu/api/point_slope?longitude=8.5510&amp;latitude=52.0302&amp;token=YOUR_API_KEY"
+</code></pre>
+
+
+<h4>Python</h4>
+
+<pre><code>
+import requests
+
+r = requests.get(
+    "https://apistack.eu/api/point_slope",
+    params={
+        "longitude": 8.5510,
+        "latitude": 52.0302,
+        "token": "YOUR_API_KEY"
+    }
+)
+
+print(r.json())
+</code></pre>
+
+</div>
+
+<div id="apikey" class="tab">
+
+<h2>API Key</h2>
+
+<p>
+An API key is required to access this service.
+Generate your personal API key to start using the API.
+</p>
+
+<div id="apikey" class="tab">
+
+<h2>API Key</h2>
+
+<p>
+Enter your email address to request an API key.
+</p>
+
+<p id="apikey-message"></p>
+
+</div>
+
+<form id="apikey-form">
+    <input 
+        type="email" 
+        id="email" 
+        name="email"
+        placeholder="your@email.com"
+        required
+    >
+
+    <button type="submit">
+        Generate API Key
+    </button>
+</form>
+
+<script>
+document.getElementById("apikey-form").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const message = document.getElementById("apikey-message");
+
+    message.innerText = "Requesting API key...";
+
+    try {
+        const response = await fetch("/api/request_api_key", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: email
+            })
+        });
+
+        const data = await response.json();
+
+        alert(JSON.stringify(data));
+
+        if (!response.ok) {
+            throw new Error(data.detail || "Request failed");
+        }
+
+        message.innerText = data.message;
+
+    } catch (error) {
+        message.innerText = error.message;
+    }
+});
+</script>
+
+<footer>
+API documentation available at <a href="/docs">/docs</a>
+</footer>
+
+</body>
+</html>

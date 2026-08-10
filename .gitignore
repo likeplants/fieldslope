@@ -1,0 +1,15 @@
+# Secrets
+.env
+api_keys.json
+
+# Runtime files
+nohup.out
+pid.txt
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Generated/cache folders
+raster_cache/
+srtm_tiles/

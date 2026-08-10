@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your API Key</title>
+
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 700px;
+            margin: 60px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+        }
+
+        button {
+            padding: 10px 16px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            margin-top: 20px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Your API Key</h1>
+
+<p>
+Your API key is ready. Click the button below to display it.
+</p>
+
+<button onclick="displayApiKey()">
+    Display API Key
+</button>
+
+<pre id="api-key">
+</pre>
+
+
+<script>
+async function displayApiKey() {
+    const output = document.getElementById("api-key");
+
+    output.innerText = "Loading...";
+
+    try {
+        const response = await fetch("/api/get_api_key", {
+            method: "GET",
+            credentials: "same-origin"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.detail || "Unable to retrieve API key");
+        }
+
+        output.innerText = data.api_key;
+
+    } catch (error) {
+        output.innerText = error.message;
+    }
+}
+</script>
+
+</body>
+</html>
