@@ -496,16 +496,13 @@ document
             });
 
             const data = await response.json();
-            console.log("data: ")
-            console.log(data);
 
             if (!response.ok) {
-                throw new Error(
-                    data.detail || "Request failed"
-                );
+                message.innerText = data.detail?.message || "Request failed";
+                return;
             }
 
-            message.innerText = JSON.stringify(data.message);
+            message.innerText = data.message;
 
         } catch (error) {
 
