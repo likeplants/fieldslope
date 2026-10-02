@@ -11,7 +11,7 @@ from fastapi.responses import (
 from dotenv import load_dotenv
 from send_apistack_mail import EmailAPIError, send_apistack_mail
 
-from jwt import (
+from jwt_helpers import (
     encodeJWT,
     decodeJWT,
     verifyJWT,

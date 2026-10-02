@@ -18,7 +18,7 @@ def token_response(token: str):
 
 
 def encodeJWT(payload: dict) -> Dict[str, str]:
-    return jwt_helpers.encode(
+    return jwt.encode(
         payload,
         JWT_SECRET,
         algorithm=JWT_ALGORITHM
@@ -42,7 +42,7 @@ def signJWT(payload: dict) -> Dict[str, str]:
 
 def decodeJWT(token: str, ignore_expiration: bool) -> dict:
     try:
-        decoded_token = jwt_helpers.decode(
+        decoded_token = jwt.decode(
             token,
             JWT_SECRET,
             algorithms=[JWT_ALGORITHM],
