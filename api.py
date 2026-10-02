@@ -10,8 +10,7 @@ import time
 
 from email.mime.text import MIMEText
 from typing import Dict
-import send_apistack_mail
-from send_apistack_mail import EmailAPIError
+from send_apistack_mail import EmailAPIError, send_apistack_mail
 
 import numpy as np
 from PIL import Image
@@ -49,8 +48,8 @@ app = FastAPI()
 
 load_dotenv()
 
-JWT_SECRET = os.environ["secret"]
-JWT_ALGORITHM = os.environ["algorithm"]
+JWT_SECRET = os.environ["JWT_SECRET"]
+JWT_ALGORITHM = os.environ["JWT_ALGORITHM"]
 APISTACK_EMAIL_API_KEY = os.environ["APISTACK_EMAIL_API_KEY"]
 
 DEBUG = False
