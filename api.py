@@ -10,6 +10,8 @@ import time
 
 from email.mime.text import MIMEText
 from typing import Dict
+import send_apistack_mail
+from send_apistack_mail import EmailAPIError
 
 import numpy as np
 from PIL import Image
@@ -49,7 +51,7 @@ load_dotenv()
 
 JWT_SECRET = os.environ["secret"]
 JWT_ALGORITHM = os.environ["algorithm"]
-GMAIL_PWD = os.environ["GMAIL_PWD"]
+APISTACK_EMAIL_API_KEY = os.environ["APISTACK_EMAIL_API_KEY"]
 
 DEBUG = False
 API_KEYS_FILE = "api_keys.json"
@@ -291,11 +293,18 @@ async def request_api_key(request: Request):
     data = await request.json()
 
     email = data.get("email")
+    captcha_token = data.get("captcha_token")
 
     if not email:
         raise HTTPException(
             status_code=400,
             detail="Email must be provided"
+        )
+
+    if not captcha_token:
+        raise HTTPException(
+            status_code=400,
+            detail="CAPTCHA must be completed"
         )
 
     access_token = encodeJWT({
@@ -310,26 +319,32 @@ async def request_api_key(request: Request):
         + access_token
     )
 
-    print(url)
+    try:
+        await send_apistack_mail(
+            subject="Your fieldslope API key request",
+            body=(
+                "Click this link to create your API key:\n\n"
+                + url
+                + "\n\nThis link expires in one hour."
+            ),
+            recipient=email,
+            api_key=APISTACK_EMAIL_API_KEY,
+            captcha_token=captcha_token,
+        )
 
-    if not send_gmail(
-        "Your API key request",
-        (
-            "Click this link to create your API key:\n\n"
-            + url
-            + "\n\nThis link expires in one hour."
-        ),
-        "hordeum.berlin@gmail.com",
-        [email],
-        GMAIL_PWD
-    ):
+    except EmailAPIError as exc:
         raise HTTPException(
-            status_code=500,
-            detail="Failed to send email"
+            status_code=exc.status_code,
+            detail={
+                "code": exc.code,
+                "message": exc.message,
+            },
         )
 
     return JSONResponse({
-        "detail": "If the email exists, a verification link was sent."
+        "detail": (
+            "If the email exists, a verification link was sent."
+        )
     })
 
 

@@ -370,26 +370,30 @@ print(r.json())
 <h2>API Key</h2>
 
 <p>
-An API key is required to access this service.
-Generate your personal API key to start using the API.
+    1. Solve captcha.
 </p>
 
-<div id="apikey" class="tab">
-
-<h2>API Key</h2>
+<!-- SimpleCaptcha -->
+<iframe
+    id="captcha-frame"
+    src="https://captcha.apistack.eu/captcha.html"
+    title="CAPTCHA"
+    style="
+        width: 100%;
+        max-width: 440px;
+        height: 170px;
+        border: 0;
+    "
+></iframe>
 
 <p>
-Enter your email address to request an API key.
+    2. Enter your email address below to request api key.
 </p>
 
-<p id="apikey-message"></p>
-
-</div>
-
 <form id="apikey-form">
-    <input 
-        type="email" 
-        id="email" 
+    <input
+        type="email"
+        id="email"
         name="email"
         placeholder="your@email.com"
         required
@@ -400,40 +404,118 @@ Enter your email address to request an API key.
     </button>
 </form>
 
+<p id="apikey-message"></p>
+
+</div>
+
 <script>
-document.getElementById("apikey-form").addEventListener("submit", async function(event) {
-    event.preventDefault();
+const CAPTCHA_ORIGIN = "https://captcha.apistack.eu";
+const captchaFrame = document.getElementById("captcha-frame");
 
-    const email = document.getElementById("email").value;
-    const message = document.getElementById("apikey-message");
+/*
+ * SimpleCaptcha interface
+ */
+function Captcha(iframe) {
+    return {
+        getResponse() {
+            return new Promise((resolve) => {
+                const handler = (event) => {
+                    // Only accept messages from SimpleCaptcha
+                    if (event.origin !== CAPTCHA_ORIGIN) {
+                        return;
+                    }
 
-    message.innerText = "Requesting API key...";
+                    // Only accept messages from our CAPTCHA iframe
+                    if (event.source !== iframe.contentWindow) {
+                        return;
+                    }
 
-    try {
-        const response = await fetch("/api/request_api_key", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                email: email
-            })
-        });
+                    // Only accept SimpleCaptcha status messages
+                    if (event.data?.type !== "SimpleCaptcha-status") {
+                        return;
+                    }
 
-        const data = await response.json();
+                    window.removeEventListener("message", handler);
 
-        alert(JSON.stringify(data));
+                    resolve(event.data.token || "");
+                };
 
-        if (!response.ok) {
-            throw new Error(data.detail || "Request failed");
+                window.addEventListener("message", handler);
+
+                iframe.contentWindow.postMessage(
+                    {
+                        type: "SimpleCaptcha-status"
+                    },
+                    CAPTCHA_ORIGIN
+                );
+            });
         }
+    };
+}
 
-        message.innerText = data.message;
+window.captcha = Captcha(captchaFrame);
 
-    } catch (error) {
-        message.innerText = error.message;
-    }
-});
+
+/*
+ * API key request
+ */
+document
+    .getElementById("apikey-form")
+    .addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const message = document.getElementById("apikey-message");
+        const button = this.querySelector("button");
+
+        message.innerText = "Checking CAPTCHA...";
+        button.disabled = true;
+
+        try {
+            // Get the current CAPTCHA token
+            const captchaToken = await window.captcha.getResponse();
+
+            if (!captchaToken) {
+                message.innerText =
+                    "Please complete the CAPTCHA first.";
+                return;
+            }
+
+            message.innerText = "Requesting API key...";
+
+            const response = await fetch("https://fieldslope.apistack.eu/api/request_api_key", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: email,
+                    captcha_token: captchaToken
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.detail || "Request failed"
+                );
+            }
+
+            message.innerText = data.message;
+
+        } catch (error) {
+
+            console.error("API key request error:", error);
+
+            message.innerText =
+                error.message || "Request failed.";
+
+        } finally {
+            button.disabled = false;
+        }
+    });
 </script>
 
 <footer>
