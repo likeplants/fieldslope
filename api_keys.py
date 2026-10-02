@@ -5,6 +5,8 @@ import secrets
 import tempfile
 import threading
 import time
+from fastapi import HTTPException, Query
+
 
 from fastapi import Header, HTTPException
 
@@ -91,19 +93,14 @@ def create_api_key(email):
 
         return api_key
 
-
 def verify_api_key(
-    token: str = Header(None)
+    token: str = Query(None)
 ):
     if not token:
         raise HTTPException(
             status_code=401,
             detail="Missing API key"
         )
-
-    # Support "Bearer <key>"
-    if token.startswith("Bearer "):
-        token = token[7:].strip()
 
     entry = load_api_keys().get(token)
 
