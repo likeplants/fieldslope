@@ -17,6 +17,7 @@ async def send_apistack_mail(
     body,
     recipient,
     api_key,
+    origin,# origin domain e.g. https://a.b.com
     captcha_token,
 ):
     """
@@ -39,7 +40,7 @@ async def send_apistack_mail(
                 "https://email.apistack.eu/api/send_mail",
                 headers={
                     "Content-Type": "application/json",
-                    "Origin": "https://captcha.apistack.eu",
+                    "Origin": origin,
                 },
                 json={
                     "recipient": recipient,

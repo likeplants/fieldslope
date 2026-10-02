@@ -150,47 +150,6 @@ def set_http_only_cookie(response, key, value):
     return response
 
 
-def send_gmail(subject, body, sender, recipients, password):
-
-    try:
-        msg = MIMEText(body)
-        msg["Subject"] = subject
-        msg["From"] = sender
-        msg["To"] = ", ".join(recipients)
-
-        with smtplib.SMTP_SSL(
-            "smtp.gmail.com",
-            465
-        ) as smtp_server:
-
-            smtp_server.login(
-                sender,
-                password
-            )
-
-            smtp_server.sendmail(
-                sender,
-                recipients,
-                msg.as_string()
-            )
-
-        return True
-
-    except (
-        SMTPAuthenticationError,
-        SMTPConnectError,
-        SMTPSenderRefused,
-        SMTPException,
-    ) as e:
-
-        print(e)
-        return False
-
-    except Exception as e:
-        print(e)
-        return False
-
-
 # -------------------------
 # Simple JSON database
 # -------------------------
@@ -328,6 +287,7 @@ async def request_api_key(request: Request):
             ),
             recipient=email,
             api_key=APISTACK_EMAIL_API_KEY,
+            origin="https://fieldslope.apistack.eu",
             captcha_token=captcha_token,
         )
 
