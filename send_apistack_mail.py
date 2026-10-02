@@ -62,7 +62,7 @@ async def send_apistack_mail(
     except ValueError as exc:
         raise EmailAPIError(
             code="MAIL_INVALID_RESPONSE",
-            message="Email service did not return valid JSON. Returned: " + str(data),
+            message="Email service did not return valid JSON. Returned: " + str(response),
             status_code=502,
         ) from exc
 
